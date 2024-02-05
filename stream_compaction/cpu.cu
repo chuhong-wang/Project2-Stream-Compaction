@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <iostream> 
 #include "cpu.h"
 
 #include "common.h"
@@ -23,7 +24,7 @@ namespace StreamCompaction {
             // exclusive prefix sum 
             odata[0] = 0; 
             for (auto i = 1; i<n; ++i){
-                odata[i] = odata[i-1] + idata[i-1]
+                odata[i] = odata[i-1] + idata[i-1];
             }
             timer().endCpuTimer();
         }
@@ -38,12 +39,13 @@ namespace StreamCompaction {
             // TODO
             // This stream compaction method will remove 0s from an array of ints.
             int curr_idx = 0; 
-            for (auto i = 1; i<n ; ++i) {
+            for (auto i = 0; i<n ; ++i) {
                 if (idata[i]!=0){
                     odata[curr_idx] = idata[i]; 
                     ++curr_idx;
                 }
             }
+            timer().endCpuTimer();
             return curr_idx; 
         }
 
@@ -53,24 +55,34 @@ namespace StreamCompaction {
          * @returns the number of elements remaining after compaction.
          */
         int compactWithScan(int n, int *odata, const int *idata) {
-            timer().startCpuTimer();
-            // TODO
-            odata[0] = 0; 
+            n+=1; // pad input array with a trailing zero 
+
             int *tmp = new int[n];
             int *tmp_sum = new int[n]; 
-            tmp[0] = idata[0]!=0? 1:0; 
-            for (auto i = 1; i<n ; ++i){
+
+            timer().startCpuTimer();
+            // label the input array by if non-zero 
+            for (auto i = 0; i<n ; ++i){
                 tmp[i] = idata[i]!=0? 1:0; 
             }
-            scan(n, tmp_sum, tmp); 
+            tmp[n-1] = 0; 
+            
+            // scan the array of input label 
+            tmp_sum[0] = 0; 
+            for (auto i = 1; i<n; ++i){
+                tmp_sum[i] = tmp_sum[i-1] + tmp[i-1];
+            }
 
+            // stream compaction  
             for (auto i = 0; i<n; ++i){
                 if (tmp[i]!=0){
                     odata[tmp_sum[i]] = idata[i]; 
                 }
             }
             timer().endCpuTimer();
-            return tmp_sum[n-1]; 
+            // for (auto i = 0; i<n ; ++i) {std::cout << tmp_sum[i] << std::endl; }
+            return tmp_sum[n-1];
+            free(tmp); free(tmp_sum); 
         }
     }
 }

@@ -26,6 +26,11 @@ inline int ilog2(int x) {
     return lg;
 }
 
+inline int idivjceil(int x, int y) {
+    return x == 0 ? 0 : (x-1)/y + 1;
+}
+
+
 inline int ilog2ceil(int x) {
     return x == 1 ? 0 : ilog2(x - 1) + 1;
 }
